@@ -9,7 +9,23 @@ To install the python dependencies, run:
 
 ```shell
 pip install -r requirements.txt
+```
 
 
+## Key Concepts
+
+This implementation consists of following parts:
+- Loading and pre-processing 2D trajectory data into suitable data structures for further processing.
+- Calculating directed hausdorf distance between trajectories to find out similar trajectories.
+- Grouping the trajectories based on hausdorf distance through oulier elimination and color mapping similar trajectories.
+
+Directed Hausdorff distance is a way to measure how far apart two sets of points are from each other. Imagine you have two sets of points, let's call them Set A and Set B. The directed Hausdorff distance between these sets tells you the maximum distance a point in Set A needs to travel to get to the closest point in Set B.
+
+The directed Hausdorff distance between sets \(A\) and \(B\) is given by:
+
+\[ d_{\text{H}}(A, B) = \max_{a \in A} \left( \min_{b \in B} \, \text{distance}(a, b) \right) \]
+
+A small visualisation of the distance metric is provided in the following figure:
+![Project Screenshot](Hausdorf_distance_visualisation.png)
 
 
