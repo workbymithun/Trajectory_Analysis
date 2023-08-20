@@ -12,8 +12,8 @@ class TrajectoryAnalysis:
         """ Init of all variables for processing goes here """
 
         self.trajectories = self.read_and_preprocess_data(config["TRAJECTORY_SRC_PATH"])
-        self.hausdorff_distance_matrix = self.compute_hausdorff_distance_matrix()
-        self.cluster_and_plot_figures(self.hausdorff_distance_matrix, config["PLOT_DIST_MATRIX"], 
+        self.directed_hausdorff_distance_matrix = self.compute_directed_hausdorff_distance_matrix()
+        self.cluster_and_plot_figures(self.directed_hausdorff_distance_matrix, config["PLOT_DIST_MATRIX"], 
                                       config["SAVE_DIST_MATRIX_PATH"], config["SAVE_GROUPED_TRAJECTORIES_PATH"], 
                                       config["EPS"], config["MIN_SAMPLES"])
 
@@ -84,9 +84,9 @@ class TrajectoryAnalysis:
         
         return directed_hausdorff_dist #hausdorff_dist
 
-    def compute_hausdorff_distance_matrix(self):
+    def compute_directed_hausdorff_distance_matrix(self):
         """ 
-        function_name - compute_hausdorff_distance_matrix
+        function_name - compute_directed_hausdorff_distance_matrix
         input - trajectories (list([(x1,y1), (x2,y2) ......],...))
         output - directed_hausdorff_distance_matrix (numpy_array)
         process - calculates the hausdorff distance matrix between all trajectory combinations
@@ -120,35 +120,32 @@ class TrajectoryAnalysis:
             try:
                 # Plot the Hausdorff distance matrix
                 fig1 = plt.figure(figsize=(8, 6))
-                plt.imshow(hausdorff_distance_matrix, cmap='cividis', origin='upper', interpolation='nearest')
+                plt.imshow(directed_hausdorff_distance_matrix, cmap='cividis', origin='upper', interpolation='nearest')
                 plt.colorbar(label='Directed Hausdorff Distance')
                 plt.title('Directed Hausdorff Distance Matrix')
                 plt.xlabel('Trajectories along X axis')
                 plt.ylabel('Trajectories along Y axis')
-                plt.xticks(range(len(hausdorff_distance_matrix[0])))
-                plt.yticks(range(len(hausdorff_distance_matrix[1])))
-                # plt.xticks(np.arange(len(hausdorff_distance_matrix[0])), np.arange(1, len(hausdorff_distance_matrix[0]) + 1))
-                # plt.yticks(np.arange(len(hausdorff_distance_matrix[1])), np.arange(1, len(hausdorff_distance_matrix[1]) + 1))
-                # plt.tight_layout()
+                plt.xticks(range(len(directed_hausdorff_distance_matrix[0])))
+                plt.yticks(range(len(directed_hausdorff_distance_matrix[1])))
+                plt.tight_layout()
                 if save_dist_matrix_path.endswith(".png") or save_dist_matrix_path.endswith(".jpg"):
                     fig1.savefig(save_dist_matrix_path)
                 else:
                     return "Invalid file path to save distance matrix figure"
                     # sys.exit(1)
             except Exception as e:
-                return "An error occurred in saving hausdorff_distance_matrix:"
+                return "An error occurred in saving directed_hausdorff_distance_matrix:"
                 # sys.exit(1)
         else:
             if plot_dist_matrix != False:
                 return "Type Error! It should be a boolean value."
-
 
         try:
             # Use DBSCAN to group similar trajectories based on the Hausdorff distance matrix
             # eps = 20.0  # Maximum distance between points to be considered in the same neighborhood
             # min_samples = 6  # Minimum number of samples required for a cluster
             dbscan = DBSCAN(eps=eps, min_samples=min_samples, metric='precomputed')
-            cluster_labels = dbscan.fit_predict(hausdorff_distance_matrix)
+            cluster_labels = dbscan.fit_predict(directed_hausdorff_distance_matrix)
 
             # Plot trajectories with distinct colors based on clusters
             fig2 = plt.figure(figsize=(10, 6))

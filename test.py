@@ -18,11 +18,8 @@ class TestClass(unittest.TestCase):
         with open("test_config.yaml", 'r') as config_file:
             config = yaml.safe_load(config_file)
         
-        
         Analysis = TrajectoryAnalysis(config)
         config["TRAJECTORY_SRC_PATH"] = "1234.json"
-        # result = TrajectoryAnalysis.compute_hausdorff_distance_matrix(Analysis)
-        # self.assertTrue(result)
         self.assertEqual(TrajectoryAnalysis.read_and_preprocess_data(Analysis, config["TRAJECTORY_SRC_PATH"]), "File not found")
 
     def test_method3(self):
@@ -30,11 +27,9 @@ class TestClass(unittest.TestCase):
         with open("test_config.yaml", 'r') as config_file:
             config = yaml.safe_load(config_file)
         
-        
         Analysis = TrajectoryAnalysis(config)
         config["TRAJECTORY_SRC_PATH"] = 1234
-        # result = TrajectoryAnalysis.compute_hausdorff_distance_matrix(Analysis)
-        # self.assertTrue(result)
+       
         self.assertEqual(TrajectoryAnalysis.read_and_preprocess_data(Analysis, config["TRAJECTORY_SRC_PATH"]), "The trajectory file path is not a string")
 
     

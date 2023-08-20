@@ -20,7 +20,7 @@ def main():
     with open(args.config, 'r') as config_file:
         config = yaml.safe_load(config_file)
 
-    Analysis = TrajectoryAnalysis(config) #config["TRAJECTORY_SRC_PATH"], config["SAVE_FIG_PATH"], config["EPS"], config["MIN_SAMPLES"])
+    Analysis = TrajectoryAnalysis(config) 
 
     
 
