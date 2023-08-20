@@ -21,9 +21,9 @@ This implementation consists of following parts:
 
 Directed Hausdorff distance is a way to measure how far apart two sets of points are from each other. Imagine you have two sets of points, let's call them Set A and Set B. The directed Hausdorff distance between these sets tells you the maximum distance a point in Set A needs to travel to get to the closest point in Set B.
 
-The directed Hausdorff distance between sets \(A\) and \(B\) is given by:
+The directed Hausdorff distance between sets A and B is given by:
 
-\[ d_{\text{H}}(A, B) = \max_{a \in A} \left( \min_{b \in B} \, \text{distance}(a, b) \right) \]
+DH(A, B) = max(max(min(d(a, b))) , max(min(d(b, a))))
 
 A small visualisation of the distance metric is provided in the following figure:
 ![Project Screenshot](Hausdorf_distance_visualisation.jpg)
