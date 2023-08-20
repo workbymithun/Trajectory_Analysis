@@ -170,7 +170,7 @@ class TrajectoryAnalysis:
             plt.title('Similar Trajectories Based on Directed Hausdorff Distance')
             plt.grid()
             if save_grouped_trajectories_path.endswith(".png") or save_grouped_trajectories_path.endswith(".jpg"):
-                fig2.savefig("grouped_trajectories.png")
+                fig2.savefig(save_grouped_trajectories_path)
             else:
                 return "Invalid file path to save grouped trajectories figure"
                 # sys.exit(1)
