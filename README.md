@@ -26,6 +26,6 @@ The directed Hausdorff distance between sets \(A\) and \(B\) is given by:
 \[ d_{\text{H}}(A, B) = \max_{a \in A} \left( \min_{b \in B} \, \text{distance}(a, b) \right) \]
 
 A small visualisation of the distance metric is provided in the following figure:
-![Project Screenshot](Hausdorf_distance_visualisation.png)
+![Project Screenshot](Hausdorf_distance_visualisation.jpg)
 
 
