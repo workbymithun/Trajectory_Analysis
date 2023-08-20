@@ -28,4 +28,25 @@ DH(A, B) = max(max(min(d(a, b))) , max(min(d(b, a))))
 A small visualisation of the distance metric is provided in the following figure:
 ![Project Screenshot](Hausdorf_distance_visualisation.jpg)
 
+## Usage
+
+To run the code, run:
+
+```shell
+python main.py
+```
+Use the config.yaml file change different parameters used in the program.
+
+The visualisation of the 2D trajectories grouped based on direction is given below:
+
+![Project Screenshot](grouped_trajectories.png)
+
+To perform unit testing with some sample test cases, run:
+```shell
+python -m unittest discover
+```
+
+
+
+
 
