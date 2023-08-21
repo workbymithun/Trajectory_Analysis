@@ -20,7 +20,8 @@ def main():
     with open(args.config, 'r') as config_file:
         config = yaml.safe_load(config_file)
 
-    Analysis = TrajectoryAnalysis(config) 
+    TrajectoryAnalysisObj = TrajectoryAnalysis(config) 
+    TrajectoryAnalysisObj.process()
 
     
 

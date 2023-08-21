@@ -11,11 +11,17 @@ class TrajectoryAnalysis:
     def __init__(self, config:str): 
         """ Init of all variables for processing goes here """
 
-        self.trajectories = self.read_and_preprocess_data(config["TRAJECTORY_SRC_PATH"])
-        self.directed_hausdorff_distance_matrix = self.compute_directed_hausdorff_distance_matrix()
-        self.cluster_and_plot_figures(self.directed_hausdorff_distance_matrix, config["PLOT_DIST_MATRIX"], 
-                                      config["SAVE_DIST_MATRIX_PATH"], config["SAVE_GROUPED_TRAJECTORIES_PATH"], 
-                                      config["EPS"], config["MIN_SAMPLES"])
+        self.config = config 
+        self.trajectories = self.read_and_preprocess_data(self.config["TRAJECTORY_SRC_PATH"])
+
+    def process(self): 
+        """ Function to process the desired functionality """
+        
+        directed_hausdorff_distance_matrix = self.compute_directed_hausdorff_distance_matrix()
+        self.cluster_and_plot_figures(directed_hausdorff_distance_matrix, self.config["PLOT_DIST_MATRIX"], 
+                                      self.config["SAVE_DIST_MATRIX_PATH"], self.config["SAVE_GROUPED_TRAJECTORIES_PATH"], 
+                                      self.config["EPS"], self.config["MIN_SAMPLES"])
+
 
     def read_and_preprocess_data(self, trajectory_file_path:str):
         """ 
@@ -52,6 +58,7 @@ class TrajectoryAnalysis:
             #Preprocess each trajectory and numpify the arrays
             res_tr = tuple(map(str, element["coordinates"].split(' ')))
             res_tr_list = [tuple(map(float, val.split(','))) for val in res_tr]
+            
 
             #trajectories would contain elements as [(x1,y1), (x2,y2) ......]
             trajectories.append(np.array(res_tr_list))
