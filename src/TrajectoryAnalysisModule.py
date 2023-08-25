@@ -9,13 +9,13 @@ import sys
 class PerformTrajectoryAnalysis:
 
     def __init__(self, config:str): 
-        """ Init of all variables for processing goes here """
+        """ Init of all variables for Analysis """
 
         self.config = config 
         self.trajectories = self.read_and_preprocess_data(self.config["TRAJECTORY_SRC_PATH"])
 
     def process(self): 
-        """ Function to process the desired functionality to perform trajectory analysis"""
+        """  Perform Trajectory Analysis """
         
         directed_hausdorff_distance_matrix = self.compute_directed_hausdorff_distance_matrix(self.trajectories)
         self.group_trajectories_and_plot_figures(directed_hausdorff_distance_matrix, self.config["PLOT_DIST_MATRIX"], 
@@ -28,9 +28,6 @@ class PerformTrajectoryAnalysis:
         input - trajectories (list([(x1,y1), (x2,y2) ......],...))
         output - Displays the 2D tajectories
         process - Read the trajectory points and display trajectories.
-
-        Parameters:
-        trajectories (list): List of trajectories, where each trajectory is a list of (x, y) points.
         """
 
         for traj in trajectories:
