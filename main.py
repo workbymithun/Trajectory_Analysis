@@ -1,12 +1,12 @@
 import argparse
 import yaml
-from TrajectoryAnalysisModule import TrajectoryAnalysis
+from src.TrajectoryAnalysisModule import PerformTrajectoryAnalysis
 
 def main():
 
     # Initialize argparse to handle command-line arguments
     parser = argparse.ArgumentParser(description="Program to perform Trajectory Analysis")
-    parser.add_argument("--config", default="config.yaml", help="Path to configuration file")
+    parser.add_argument("--config", default="src/config.yaml", help="Path to configuration file")
     parser.add_argument("--verbose", action="store_true", help="Enable verbose mode")
 
     # Parse command-line arguments
@@ -20,10 +20,11 @@ def main():
     with open(args.config, 'r') as config_file:
         config = yaml.safe_load(config_file)
 
-    TrajectoryAnalysisObj = TrajectoryAnalysis(config) 
-    TrajectoryAnalysisObj.process()
+    PerformTrajectoryAnalysisObj = PerformTrajectoryAnalysis(config) 
+    PerformTrajectoryAnalysisObj.process()
+
+    print("The trajectory grouping is performed successfully...")
 
     
-
 if __name__ == "__main__":
     main()

@@ -1,0 +1,6 @@
+EPS: 22.0   #Maximum distance between points to be considered in the same neighborhood
+MIN_SAMPLES: 2    #Minimum number of samples to perform DBSCAN clustering
+TRAJECTORY_SRC_PATH: "data/trajectories.json"
+PLOT_DIST_MATRIX: False
+SAVE_DIST_MATRIX_PATH: "output/directed_hausdorff_distance_matrix.png"
+SAVE_GROUPED_TRAJECTORIES_PATH: "output/grouped_trajectories.png"

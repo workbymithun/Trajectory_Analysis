@@ -6,7 +6,7 @@ import json
 import logging
 import sys
 
-class TrajectoryAnalysis:
+class PerformTrajectoryAnalysis:
 
     def __init__(self, config:str): 
         """ Init of all variables for processing goes here """
@@ -15,69 +15,72 @@ class TrajectoryAnalysis:
         self.trajectories = self.read_and_preprocess_data(self.config["TRAJECTORY_SRC_PATH"])
 
     def process(self): 
-        """ Function to process the desired functionality """
+        """ Function to process the desired functionality to perform trajectory analysis"""
         
-        directed_hausdorff_distance_matrix = self.compute_directed_hausdorff_distance_matrix()
-        self.cluster_and_plot_figures(directed_hausdorff_distance_matrix, self.config["PLOT_DIST_MATRIX"], 
+        directed_hausdorff_distance_matrix = self.compute_directed_hausdorff_distance_matrix(self.trajectories)
+        self.group_trajectories_and_plot_figures(directed_hausdorff_distance_matrix, self.config["PLOT_DIST_MATRIX"], 
                                       self.config["SAVE_DIST_MATRIX_PATH"], self.config["SAVE_GROUPED_TRAJECTORIES_PATH"], 
                                       self.config["EPS"], self.config["MIN_SAMPLES"])
+        
+    def plot_trajectories(self, trajectories):
+        """
+        function_name - plot_trajectories
+        input - trajectories (list([(x1,y1), (x2,y2) ......],...))
+        output - Displays the 2D tajectories
+        process - Read the trajectory points and display trajectories.
 
+        Parameters:
+        trajectories (list): List of trajectories, where each trajectory is a list of (x, y) points.
+        """
 
+        for traj in trajectories:
+            x_vals, y_vals = zip(*traj)  # Unzip the points into separate x and y lists
+            plt.plot(x_vals, y_vals)
+        # Set plot labels and title
+        plt.xlabel("X")
+        plt.ylabel("Y")
+        plt.title("2D Trajectories")
+        # Show plot
+        plt.show()
+       
     def read_and_preprocess_data(self, trajectory_file_path:str):
         """ 
         function_name - read_and_preprocess_data
         input - trajectory_file_path (str)
         output - trajectories (list([(x1,y1), (x2,y2) ......],...))
-        process - reads the json file and pre-process the required values only for further processing
+        process - reads the json file and pre-process the required values only for further processing.
         """
 
-        trajectories = []
         if type(trajectory_file_path) != str:
             logging.error("The trajectory file path is not a string")
             return "The trajectory file path is not a string"
-            # sys.exit(1)
         try:
             with open(trajectory_file_path, "r") as json_file:
                 trajectory_data = json.load(json_file)
         except FileNotFoundError:
             logging.error("File not found")
             return "File not found"
-            # sys.exit(1)
         except json.JSONDecodeError:
             logging.error("Invalid JSON format")
             return "Invalid JSON format"
-            # sys.exit(1)
         except Exception as e:
             logging.error("An error occurred:", e)
             return "An error occurred:"
-            # sys.exit(1)
-
-        
-        for element in trajectory_data:
-    
-            #Preprocess each trajectory and numpify the arrays
-            res_tr = tuple(map(str, element["coordinates"].split(' ')))
-            res_tr_list = [tuple(map(float, val.split(','))) for val in res_tr]
-            
-
-            #trajectories would contain elements as [(x1,y1), (x2,y2) ......]
-            trajectories.append(np.array(res_tr_list))
-
+        trajectories = [np.array([tuple(map(float, val.split(','))) for val in element["coordinates"].split(' ')])
+                            for element in trajectory_data]
         return trajectories
 
-    def calc_directed_hausdorff_distance(self, traj1, traj2):
+    def calculate_directed_hausdorff_distance(self, traj1, traj2):
         """ 
-        function_name - calc_directed_hausdorff_distance
+        function_name - calculate_directed_hausdorff_distance
         input - traj1 (numpy_array - [(x1,y1), (x2,y2) ......]), traj2 (numpy_array - [(x1,y1), (x2,y2) ......])
         output - directed_hausdorff_dist (float)
-        process - calculates the directed hausdorff distance between given two trajectories
+        process - calculates the directed hausdorff distance between given two trajectories.
         """
 
         if len(traj1) < 1 or len(traj2) < 1:
             logging.error("There are not enough points in a trajectory to compute distance.")
             return "There are not enough points in a trajectory to compute distance."
-            # sys.exit(1)
-
 
         #Computing directed hausdorf distance as DH(A, B) = max(max(min(d(a, b))) , max(min(d(b, a))))
 
@@ -89,39 +92,45 @@ class TrajectoryAnalysis:
         
         directed_hausdorff_dist = max(max_distances_1_to_2, max_distances_2_to_1)
         
-        return directed_hausdorff_dist #hausdorff_dist
+        return directed_hausdorff_dist
 
-    def compute_directed_hausdorff_distance_matrix(self):
+    def compute_directed_hausdorff_distance_matrix(self, trajectory_list):
         """ 
         function_name - compute_directed_hausdorff_distance_matrix
-        input - trajectories (list([(x1,y1), (x2,y2) ......],...))
+        input - trajectory_list (list([(x1,y1), (x2,y2) ......],...))
         output - directed_hausdorff_distance_matrix (numpy_array)
-        process - calculates the hausdorff distance matrix between all trajectory combinations
+        process - calculates the hausdorff distance matrix.
         """
-        if len(self.trajectories) <= 1:
+
+        if len(trajectory_list) <= 1:
             logging.error("There are not enough trajectories to perform computing")
             return "There are not enough trajectories to perform computing"
-            # sys.exit(1)
 
-        directed_hausdorff_distance_matrix = np.zeros((len(self.trajectories), len(self.trajectories)))
-        for i in range(len(self.trajectories)):
-            for j in range(len(self.trajectories)):
-                directed_hausdorff_distance_matrix[i, j] = self.calc_directed_hausdorff_distance(self.trajectories[i], self.trajectories[j])
+        num_trajectories = len(trajectory_list)
+        directed_hausdorff_distance_matrix = np.zeros((num_trajectories, num_trajectories))
+
+        for i in range(num_trajectories):
+            for j in range(i, num_trajectories):  # Use symmetry of the distance matrix
+                distance = self.calculate_directed_hausdorff_distance(trajectory_list[i], trajectory_list[j])
+                directed_hausdorff_distance_matrix[i, j] = distance
+                directed_hausdorff_distance_matrix[j, i] = distance  # Fill symmetric value
+
         return directed_hausdorff_distance_matrix
 
-    def cluster_and_plot_figures(self, directed_hausdorff_distance_matrix, plot_dist_matrix:bool, 
+    def group_trajectories_and_plot_figures(self, directed_hausdorff_distance_matrix, plot_dist_matrix:bool, 
                                  save_dist_matrix_path:str, save_grouped_trajectories_path:str, 
                                  eps:float, min_samples:int):
         """ 
-        function_name - cluster_and_plot_figures
+        function_name - group_trajectories_and_plot_figures
         input - directed_hausdorff_distance_matrix (numpy_array), plot_dist_matrix (boolean), 
                 save_dist_matrix_path (str), save_grouped_trajectories_path (str), 
                 eps (float), min_samples (int)
         output - None (saves final figures to destination paths)
         process - cluster the trajectories based on directed hausdorf distance and 
                   plot the grouped trajectories with same colour for each group after 
-                  eliminating outlier (DBSCAN is used for clustering)
+                  eliminating outliers (DBSCAN is used for clustering).
         """
+
         #Visualise hausdorf distance matrix before clustering 
         if plot_dist_matrix == True:
             try:
@@ -139,10 +148,8 @@ class TrajectoryAnalysis:
                     fig1.savefig(save_dist_matrix_path)
                 else:
                     return "Invalid file path to save distance matrix figure"
-                    # sys.exit(1)
             except Exception as e:
                 return "An error occurred in saving directed_hausdorff_distance_matrix:"
-                # sys.exit(1)
         else:
             if plot_dist_matrix != False:
                 return "Type Error! It should be a boolean value."
@@ -153,7 +160,7 @@ class TrajectoryAnalysis:
             # min_samples = 6  # Minimum number of samples required for a cluster
             dbscan = DBSCAN(eps=eps, min_samples=min_samples, metric='precomputed')
             cluster_labels = dbscan.fit_predict(directed_hausdorff_distance_matrix)
-
+            
             # Plot trajectories with distinct colors based on clusters
             fig2 = plt.figure(figsize=(10, 6))
             colormap = plt.cm.get_cmap('tab10', len(np.unique(cluster_labels)))
@@ -161,10 +168,8 @@ class TrajectoryAnalysis:
             for cluster_id in np.unique(cluster_labels):
                 if cluster_id == -1:
                     continue  # Skip noise points (cluster_id == -1)
-                
                 color = colormap(cluster_id)
                 cluster_indices = np.where(cluster_labels == cluster_id)[0]
-                
                 for index in cluster_indices:
                     traj = self.trajectories[index]
                     plt.plot(traj[:, 0], traj[:, 1], color=color, marker='o', markersize=4, linestyle='-', linewidth=1)
@@ -177,7 +182,6 @@ class TrajectoryAnalysis:
                 fig2.savefig(save_grouped_trajectories_path)
             else:
                 return "Invalid file path to save grouped trajectories figure"
-                # sys.exit(1)
         except Exception as e:
             return "An error occurred while saving grouped_trajectories:"
-            # sys.exit(1)
+            

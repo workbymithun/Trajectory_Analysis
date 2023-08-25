@@ -1,7 +1,7 @@
 # Trajectory_Analysis
 This is a python project that groups 2D trajectories of objects (collected from GPS data - latitude and longitude in geographical terms) in similar direction. An illustration of the input trajectory data is shown in the figure below.
 
-![Project Screenshot](Trajectory_data.png)
+![Project Screenshot](docs/Trajectory_data.png)
 
 ## Installation of dependencies
 
@@ -26,7 +26,7 @@ The directed Hausdorff distance between sets A and B is given by:
 DH(A, B) = max(max(min(d(a, b))) , max(min(d(b, a))))
 
 A small visualisation of the distance metric is provided in the following figure:
-![Project Screenshot](Hausdorf_distance_visualisation.jpg)
+![Project Screenshot](docs/Hausdorf_distance_visualisation.jpg)
 
 ## Usage
 
@@ -39,11 +39,11 @@ Use the config.yaml file change different parameters used in the program.
 
 The visualisation of the 2D trajectories grouped based on direction is given below:
 
-![Project Screenshot](grouped_trajectories.png)
+![Project Screenshot](output/Grouped_Trajectories.png)
 
 To perform unit testing with some sample test cases, run:
 ```shell
-python -m unittest discover
+python -m unittest discover tests
 ```
 
 
