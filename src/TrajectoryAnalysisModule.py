@@ -18,11 +18,11 @@ class PerformTrajectoryAnalysis:
         """  Perform Trajectory Analysis """
         
         directed_hausdorff_distance_matrix = self.compute_directed_hausdorff_distance_matrix(self.trajectories)
-        self.group_trajectories_and_plot_figures(directed_hausdorff_distance_matrix, self.config["PLOT_DIST_MATRIX"], 
-                                      self.config["SAVE_DIST_MATRIX_PATH"], self.config["SAVE_GROUPED_TRAJECTORIES_PATH"], 
-                                      self.config["EPS"], self.config["MIN_SAMPLES"])
+        cluster_labels = self.group_trajectories(directed_hausdorff_distance_matrix, self.config["EPS"], self.config["MIN_SAMPLES"])
+        self.plot_figures(cluster_labels, directed_hausdorff_distance_matrix, self.config["PLOT_DIST_MATRIX"], 
+                            self.config["SAVE_DIST_MATRIX_PATH"], self.config["SAVE_GROUPED_TRAJECTORIES_PATH"])
         
-    def plot_trajectories(self, trajectories):
+    def plot_trajectories(self, trajectories:list):
         """
         function_name - plot_trajectories
         input - trajectories (list([(x1,y1), (x2,y2) ......],...))
@@ -40,7 +40,7 @@ class PerformTrajectoryAnalysis:
         # Show plot
         plt.show()
        
-    def read_and_preprocess_data(self, trajectory_file_path:str):
+    def read_and_preprocess_data(self, trajectory_file_path:str) -> list:
         """ 
         function_name - read_and_preprocess_data
         input - trajectory_file_path (str)
@@ -67,7 +67,7 @@ class PerformTrajectoryAnalysis:
                             for element in trajectory_data]
         return trajectories
 
-    def calculate_directed_hausdorff_distance(self, traj1, traj2):
+    def calculate_directed_hausdorff_distance(self, traj1: np.ndarray, traj2: np.ndarray) -> float:
         """ 
         function_name - calculate_directed_hausdorff_distance
         input - traj1 (numpy_array - [(x1,y1), (x2,y2) ......]), traj2 (numpy_array - [(x1,y1), (x2,y2) ......])
@@ -91,7 +91,7 @@ class PerformTrajectoryAnalysis:
         
         return directed_hausdorff_dist
 
-    def compute_directed_hausdorff_distance_matrix(self, trajectory_list):
+    def compute_directed_hausdorff_distance_matrix(self, trajectory_list:list) -> np.ndarray:
         """ 
         function_name - compute_directed_hausdorff_distance_matrix
         input - trajectory_list (list([(x1,y1), (x2,y2) ......],...))
@@ -114,14 +114,27 @@ class PerformTrajectoryAnalysis:
 
         return directed_hausdorff_distance_matrix
 
-    def group_trajectories_and_plot_figures(self, directed_hausdorff_distance_matrix, plot_dist_matrix:bool, 
-                                 save_dist_matrix_path:str, save_grouped_trajectories_path:str, 
-                                 eps:float, min_samples:int):
+    def group_trajectories(self, directed_hausdorff_distance_matrix: np.ndarray, eps:float, min_samples:int) -> np.ndarray:
         """ 
-        function_name - group_trajectories_and_plot_figures
+        function_name - group_trajectories
+        input - directed_hausdorff_distance_matrix (numpy_array), eps (float), min_samples (int)
+        output - cluster_labels (numpy_array)
+        process - cluster the trajectories based on directed hausdorff distance.
+        """
+        # Use DBSCAN to group similar trajectories based on the Hausdorff distance matrix
+        # eps = 20.0  # Maximum distance between points to be considered in the same neighborhood
+        # min_samples = 6  # Minimum number of samples required for a cluster
+        dbscan = DBSCAN(eps=eps, min_samples=min_samples, metric='precomputed')
+        cluster_labels = dbscan.fit_predict(directed_hausdorff_distance_matrix)
+
+        return cluster_labels
+
+    def plot_figures(self, cluster_labels:np.ndarray, directed_hausdorff_distance_matrix:np.ndarray, plot_dist_matrix:bool, 
+                    save_dist_matrix_path:str, save_grouped_trajectories_path:str):
+        """ 
+        function_name - plot_figures
         input - directed_hausdorff_distance_matrix (numpy_array), plot_dist_matrix (boolean), 
-                save_dist_matrix_path (str), save_grouped_trajectories_path (str), 
-                eps (float), min_samples (int)
+                save_dist_matrix_path (str), save_grouped_trajectories_path (str)
         output - None (saves final figures to destination paths)
         process - cluster the trajectories based on directed hausdorf distance and 
                   plot the grouped trajectories with same colour for each group after 
@@ -152,12 +165,6 @@ class PerformTrajectoryAnalysis:
                 return "Type Error! It should be a boolean value."
 
         try:
-            # Use DBSCAN to group similar trajectories based on the Hausdorff distance matrix
-            # eps = 20.0  # Maximum distance between points to be considered in the same neighborhood
-            # min_samples = 6  # Minimum number of samples required for a cluster
-            dbscan = DBSCAN(eps=eps, min_samples=min_samples, metric='precomputed')
-            cluster_labels = dbscan.fit_predict(directed_hausdorff_distance_matrix)
-            
             # Plot trajectories with distinct colors based on clusters
             fig2 = plt.figure(figsize=(10, 6))
             colormap = plt.cm.get_cmap('tab10', len(np.unique(cluster_labels)))
