@@ -1,7 +1,11 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.spatial.distance import cdist
+from scipy.spatial import cKDTree
 from sklearn.cluster import DBSCAN
+from concurrent.futures import ThreadPoolExecutor
+from concurrent.futures import ThreadPoolExecutor
+from scipy.spatial import cKDTree
 import json 
 import logging
 import sys
@@ -96,23 +100,47 @@ class PerformTrajectoryAnalysis:
         function_name - compute_directed_hausdorff_distance_matrix
         input - trajectory_list (list([(x1,y1), (x2,y2) ......],...))
         output - directed_hausdorff_distance_matrix (numpy_array)
-        process - calculates the hausdorff distance matrix.
+        process - calculates the hausdorff distance matrix using a KD-tree nearest neighbour search
+                  for each trajectory (run in parallel threads) instead of comparing every pair separately.
         """
 
         if len(trajectory_list) <= 1:
             logging.error("There are not enough trajectories to perform computing")
             return "There are not enough trajectories to perform computing"
 
-        num_trajectories = len(trajectory_list)
-        directed_hausdorff_distance_matrix = np.zeros((num_trajectories, num_trajectories))
+        # Stack the points of all trajectories into one array and note where each trajectory starts
+        all_trajectory_points = np.vstack(trajectory_list)
+        trajectory_start_indices = np.cumsum([0] + [len(traj) for traj in trajectory_list[:-1]])
 
-        for i in range(num_trajectories):
-            for j in range(i, num_trajectories):  # Use symmetry of the distance matrix
-                distance = self.calculate_directed_hausdorff_distance(trajectory_list[i], trajectory_list[j])
-                directed_hausdorff_distance_matrix[i, j] = distance
-                directed_hausdorff_distance_matrix[j, i] = distance  # Fill symmetric value
+        def compute_max_min_distances_to_trajectory(target_traj: np.ndarray) -> np.ndarray:
+            # For every point, find the distance to the closest point of target_traj (KD-tree search),
+            # then keep the maximum of those distances within each trajectory
+            min_distances_to_target, _ = cKDTree(target_traj).query(all_trajectory_points, k=1)
+            return np.maximum.reduceat(min_distances_to_target, trajectory_start_indices)
+
+        # One column per target trajectory, computed in parallel threads (cKDTree releases the GIL)
+        # one_sided_distance_matrix[i, j] = max(min(d(a, b))) for a in trajectory i, b in trajectory j
+        with ThreadPoolExecutor() as executor:
+            one_sided_distance_columns = list(executor.map(compute_max_min_distances_to_trajectory, trajectory_list))
+        one_sided_distance_matrix = np.column_stack(one_sided_distance_columns)
+
+        #Computing directed hausdorf distance as DH(A, B) = max(max(min(d(a, b))) , max(min(d(b, a))))
+        directed_hausdorff_distance_matrix = np.maximum(one_sided_distance_matrix, one_sided_distance_matrix.T)
+        np.fill_diagonal(directed_hausdorff_distance_matrix, 0.0)
 
         return directed_hausdorff_distance_matrix
+
+    def compute_hausdorff_matrix(trajs):
+        
+        P = np.vstack(trajs)                                  # all points stacked
+        starts = np.cumsum([0] + [len(t) for t in trajs[:-1]])
+        col = lambda B: np.maximum.reduceat(cKDTree(B).query(P)[0], starts)
+        with ThreadPoolExecutor() as ex:
+            H = np.column_stack(list(ex.map(col, trajs)))     # H[i,j] = h(T_i → T_j)
+        D = np.maximum(H, H.T)
+        np.fill_diagonal(D, 0.0)
+        
+        return D
 
     def group_trajectories(self, directed_hausdorff_distance_matrix: np.ndarray, eps:float, min_samples:int) -> np.ndarray:
         """ 
